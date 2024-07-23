@@ -4,7 +4,7 @@ async function autoScroll(page) {
   await page.evaluate(async () => {
     await new Promise((resolve) => {
       var totalHeight = 0;
-      var distance = 200;
+      var distance = 200; // If your internet connection is slow, decrease this value to make scrolling slower.
       var timer = setInterval(() => {
         var scrollHeight = document.body.scrollHeight;
         window.scrollBy(0, distance);
@@ -34,13 +34,13 @@ async function parseProductos(page) {
     );
 
     const price = await element
-      .$eval(".price", (el) => el.textContent.slice(0, -2))
+      .$eval(".price", (el) => parseFloat(el.textContent.slice(0, -2)))
       .catch(() => "0");
 
     elementData = {
-      img,
       name,
       price,
+      img,
     };
 
     results.push(elementData);
@@ -48,14 +48,16 @@ async function parseProductos(page) {
   return results;
 }
 
-const scrapper = async (url) => {
+const URL = "https://www.sinhumo.net/nuevos-productos";
+
+const scrapper = async () => {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     defaultViewport: null,
     ignoreHTTPSErrors: true,
   });
   const page = await browser.newPage();
-  await page.goto(url, {
+  await page.goto(URL, {
     waitUntil: "domcontentloaded",
   });
 
@@ -75,7 +77,7 @@ const scrapper = async (url) => {
 
   const elementos = await parseProductos(page);
   await browser.close();
-  console.log(elementos);
+  return elementos;
 };
 
-scrapper("https://www.sinhumo.net/nuevos-productos");
+module.exports = { scrapper };
